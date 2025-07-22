@@ -1,0 +1,8 @@
+/.vs
+/External/steamworks_sdk_125/sdk
+/External/SDL2-devel-2.0.10-VC/SDL2-2.0.10
+/External/SDL2_mixer-devel-2.0.4-VC/SDL2_mixer-2.0.4
+/External/SDL2_image-devel-2.0.0-VC/SDL2_image-2.0.0
+/External/SDL2_ttf-devel-2.0.12-VC/SDL2_ttf-2.0.12
+/Release
+/Source/Release
