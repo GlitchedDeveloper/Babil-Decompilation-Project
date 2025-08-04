@@ -12,23 +12,29 @@ void ignore_this() {
 	size_t a2 = str.rfind(".");
 	size_t a3 = str.rfind(g_period);
 	size_t a4 = str.rfind(g_backslash);
-	str = str.substr(str.rfind("a"));
-	str = str.substr(str.rfind('.'));
-	str = str.substr(str.rfind('.'));
 }
 
 //FUN_00427b50
 int Main::FF4_main(int argc, char* argv[]) {
 	try {
+		int appId = 312750;
 		Steam steam;
-		if (steam.Initialize(312750)) {
-			LPCSTR* savepath;
-			GetSavePath(savepath);
-			ignore_this();
-			ignore_this();
+		if (steam.Initialize(appId)) {
+			std::string* appdata_path = GetAppDataPath(&std::string());
+			if (appdata_path != &g_appdata_path) {
+				memcpy(&g_appdata_path, appdata_path, sizeof(std::string));
+				appdata_path = nullptr;
+			}
 		}
 	}
-	catch(int err) {}
+	//FUN_00426bb0
+	catch(int err) {
+		printf("test");
+	}
+
+
+	ignore_this();
+	ignore_this();
 	return -1;
 }
 
@@ -36,7 +42,7 @@ int Main::FF4_main(int argc, char* argv[]) {
 void Main::SETranslator(unsigned int code, EXCEPTION_POINTERS* info) {}
 
 //FUN_00423580
-void Main::GetSavePath(LPCSTR* savepath) {
+std::string* Main::GetAppDataPath(std::string* out) {
 	try {
 		char exe_path[MAX_PATH];
 		GetModuleFileNameA(NULL, exe_path, MAX_PATH);
@@ -45,21 +51,23 @@ void Main::GetSavePath(LPCSTR* savepath) {
 			char appdata_path[MAX_PATH];
 			HRESULT hr = SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, appdata_path);
 			if (SUCCEEDED(hr)) {
-				std::string str = appdata_path;
-				str += exe_name;
-				str = str.substr(str.rfind(g_period));
-				str = str.append(g_backslash, 1);
-				hr = SHCreateDirectoryExA(NULL, str.c_str(), NULL);
+				std::string path = appdata_path;
+				path += exe_name;
+				path = path.substr(0, path.rfind(g_period));
+				path.append(g_backslash, 1);
+
+				hr = SHCreateDirectoryExA(NULL, path.c_str(), NULL);
 				if (SUCCEEDED(hr)) {
-					*savepath = str.c_str();
-					return;
+					memcpy(out, &path, sizeof(std::string));
+					return out;
 				}
 			}
 		}
-		std::string str(exe_path);
-		str = str.substr(str.rfind(g_backslash));
-		*savepath = str.c_str();
-		return;
+		exe_name = exe_path;
+		std::string path = exe_name;
+		path = path.substr(0, path.rfind(g_backslash) + 1);
+		memcpy(out, &path, sizeof(std::string));
+		return out;
 	}
-	catch (int errorCode) {}
+	catch (int a) {}
 }
