@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include <exception>
 
-#include "Main.h"
+#include "ff4_win32.h"
 
 //FUN_0042c8d0
 int SDL_main(int argc, char* argv[]) {
