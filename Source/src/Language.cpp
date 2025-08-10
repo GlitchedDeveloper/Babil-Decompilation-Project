@@ -9,7 +9,7 @@ namespace Language {
 		Language = language;
 	}
 
-	//FUN_00430340
+	//FUN_00430280
 	int GetLanguage() {
 		return Language;
 	}

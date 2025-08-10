@@ -31,7 +31,9 @@ namespace Main {
 	//FUN_00429920
 	void CalculateViewportDimensions();
 	//FUN_0042a140
-	void FUN_0042a140();
+	void RenderPauseScreen();
+	//FUN_0042ac40
+	SDL_Surface* FF4_TTF_RenderText(const char* text, int x, int y, int* size);
 
 	void inline InitSDLJoystick();
 
@@ -125,7 +127,7 @@ namespace Main {
 	static int ViewportY;
 
 	//DAT_005f9a07
-	static bool DAT_005f9a07;
+	static bool IsPausePressed;
 
 	//DAT_005f9a15
 	static bool DAT_005f9a15;
@@ -136,4 +138,59 @@ namespace Main {
 	//DAT_005f9a70
 	static SDL_Texture* DAT_005f9a70;
 
+	//DAT_005f9a80
+	static DWORD Button1Width;
+	//DAT_005f9a84
+	static DWORD Button1Height;
+	//DAT_005f9a90
+	static DWORD Button2Width;
+	//DAT_005f9a94
+	static DWORD Button2Height;
+	//DAT_005f9a2c
+	static DWORD _DAT_005f9a2c;
+	//DAT_005f9a30
+	static long iRam005f9a30;
+	//DAT_005f9a40
+	static long iRam005f9a40;
+	//DAT_005f9a34
+	static unsigned long uRam005f9a34;
+	//DAT_005f9a38
+	static unsigned long uRam005f9a38;
+	//DAT_005f9a44
+	static unsigned long uRam005f9a44;
+	//DAT_005f9a48
+	static unsigned long uRam005f9a48;
+	//DAT_005f9a3c
+	static long _DAT_005f9a3c;
+	//DAT_005f9a78
+	static SDL_Rect Button1Rect;
+	//DAT_005f9a88
+	static SDL_Rect Button2Rect;
+
+	//DAT_005df368
+	static std::string DAT_005df368;
+
+	//DAT_005e99bc;
+	static int HoveredButtonIndex;
+
+	//DAT_005f9a70
+	static SDL_Texture* OverlayTexture;
+
+	//DAT_005e99c8
+	static void* DOTEMU_ASSERT_VAR;
+
+	//DAT_005f9a22
+	static bool DAT_005f9a22;
+	//DAT_005f9a23
+	static bool DAT_005f9a23;
+	//DAT_005f9a26
+	static bool DAT_005f9a26;
+	//DAT_005e99d0
+	static bool DAT_005e99d0;
+	//DAT_005e99d1
+	static bool DAT_005e99d1;
+	//DAT_005f9a27
+	static bool DAT_005f9a27;
+	//DAT_005f9ab8
+	static int DAT_005f9ab8;
 }

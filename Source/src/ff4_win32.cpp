@@ -32,8 +32,10 @@ void ignore_this() {
 	Renderer::FUN_00441ca0(0, 0);
 	Main::CalculateViewportDimensions();
 	Main::CalculateViewportDimensions();
-	Main::FUN_0042a140();
-	Main::FUN_0042a140();
+	Main::RenderPauseScreen();
+	Main::RenderPauseScreen();
+	SDL_FreeSurface(Main::FF4_TTF_RenderText(Main::Menu_Resume.c_str(), 40, 30, {}));
+	SDL_FreeSurface(Main::FF4_TTF_RenderText(Main::Menu_Quit.c_str(), 20, 130, {}));
 }
 
 //FUN_00423560
@@ -148,9 +150,11 @@ int Main::FF4_main(int argc, char* argv[]) {
 			SDL_GL_MakeCurrent(Window, BackgroundContext);
 			glViewport(ViewportX, ViewportY, ViewportWidth, ViewportHeight);
 			SDL_GL_MakeCurrent(Window, ActiveContext);
-			if (DAT_005f9a07) {
-				FUN_0042a140();
+			if (IsPausePressed) {
+				RenderPauseScreen();
 			}
+			SDL_ShowCursor(1);
+
 		}
 	}
 	//FUN_00426bb0
@@ -338,7 +342,7 @@ void Main::CalculateViewportDimensions()
 }
 
 //FUN_0042a140
-void Main::FUN_0042a140() {
+void Main::RenderPauseScreen() {
 	DAT_005f9a15 = false;
 	if (DAT_005f9a74 == nullptr && !DAT_005f9a16) {
 		SDL_GL_MakeCurrent(Window, BackgroundContext);
@@ -368,24 +372,208 @@ void Main::FUN_0042a140() {
 	SDL_RenderClear(Renderer);
 	SDL_Surface* surface = SDL_CreateRGBSurface(0, CurrentWindowWidth, CurrentWindowHeight, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
 	SDL_FillRect(surface, 0, SDL_MapRGBA(surface->format, 0, 0, 0, 127));
-	//DAT_005f9a80 = 0xf0;
-	//DAT_005f9a84 = 0x48;
-	//DAT_005f9a90 = 0xf0;
-	//DAT_005f9a94 = 0x48;
-	//_DAT_005f9a2c = CurrentWindowWidth / 2 + -0x78;
-	//iRam005f9a30 = CurrentWindowHeight / 2 + -0x6c;
-	//iRam005f9a40 = CurrentWindowHeight / 2 + 0x24;
-	//uRam005f9a34 = 0xf0;
-	//uRam005f9a38 = 0x48;
-	//uRam005f9a44 = 0xf0;
-	//uRam005f9a48 = 0x48;
-	//_DAT_005f9a3c = _DAT_005f9a2c;
-	//DAT_005f9a78 = _DAT_005f9a2c;
-	//_DAT_005f9a7c = iRam005f9a30;
-	//DAT_005f9a88 = _DAT_005f9a2c;
-	//_DAT_005f9a8c = iRam005f9a40;
+	Button1Width = 240;
+	Button1Height = 72;
+	Button2Width = 240;
+	Button2Height = 72;
+	_DAT_005f9a2c = CurrentWindowWidth / 2 + -0x78;
+	iRam005f9a30 = CurrentWindowHeight / 2 + -0x6c;
+	iRam005f9a40 = CurrentWindowHeight / 2 + 0x24;
+	uRam005f9a34 = 240;
+	uRam005f9a38 = 72;
+	uRam005f9a44 = 240;
+	uRam005f9a48 = 72;
+	_DAT_005f9a3c = _DAT_005f9a2c;
+	Button1Rect.x = _DAT_005f9a2c;
+	Button1Rect.y = iRam005f9a30;
+	Button2Rect.x = _DAT_005f9a2c;
+	Button2Rect.y = iRam005f9a40;
 	SDL_Surface* btn1 = IMG_Load("button_off.png");
 	SDL_Surface* btn2 = IMG_Load("button_off.png");
-	void* local_18 = 0;
-	//...
+	SDL_Surface* resume_text = FF4_TTF_RenderText(Menu_Resume.c_str(), 40, 30, {});
+	SDL_Surface* quit_text = FF4_TTF_RenderText(Menu_Quit.c_str(), 40, 30, {});
+	SDL_Rect rect;
+	{
+		rect.x = (Button1Width - resume_text->w) / 2;
+		rect.y = (Button1Height - resume_text->h) / 2;
+		rect.w = resume_text->w;
+		rect.h = resume_text->h;
+		SDL_UpperBlit(resume_text, nullptr, btn1, &rect);
+	}
+	{
+		rect.x = (Button2Width - quit_text->w) / 2;
+		rect.y = (Button2Height - quit_text->h) / 2;
+		rect.w = quit_text->w;
+		rect.h = quit_text->h;
+		SDL_UpperBlit(quit_text, nullptr, btn2, &rect);
+	}
+	SDL_Surface* point = IMG_Load("point.png");
+	SDL_UpperBlit(btn1, nullptr, surface, &Button1Rect);
+	SDL_UpperBlit(btn2, nullptr, surface, &Button2Rect);
+	{
+		float x;
+		if (HoveredButtonIndex == 0) {
+			x = (float)(Button1Rect.x - point->w + Button1Width) / 5.8;
+			rect.y = (Button1Height / 2 - point->h / 4) + Button1Rect.y;
+		}
+		else {
+			x = (float)(Button2Rect.x - point->w + Button2Width) / 5.8;
+			rect.y = (Button2Height / 2 - point->h / 4) + Button2Rect.y;
+		}
+		rect.x = x;
+		SDL_UpperBlit(point, nullptr, surface, &rect);
+	}
+	OverlayTexture = SDL_CreateTextureFromSurface(Renderer, surface);
+	if (OverlayTexture == nullptr) {
+		fprintf(stderr, "CreateTextureFromSurface failed: %s\n", SDL_GetError());
+		return;
+	}
+	SDL_FreeSurface(point);
+	SDL_FreeSurface(resume_text);
+	SDL_FreeSurface(quit_text);
+	SDL_FreeSurface(btn1);
+	SDL_FreeSurface(btn2);
+	SDL_FreeSurface(surface);
+	if (DOTEMU_ASSERT_VAR == NULL) {
+		surface = IMG_Load("point.png");
+		if (surface == nullptr) {
+			printf("DOTEMU_ASSERT(tmp != NULL) failed at %s, line: %d\n", "c:\\slave_jenkins\\workspace\\stx_time_steam_content\\src\\ff4_win32.cpp", 1930);
+			MessageBoxA(NULL, "The program has encountered an undefined behavior, see the logs for more details", "Assert Failed", MB_ICONERROR);
+			exit(1);
+		}
+		SDL_Surface* new_surface = surface;
+		if (surface->format->format != SDL_PIXELFORMAT_ARGB8888) {
+			new_surface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_ARGB8888, 0);
+			SDL_FreeSurface(surface);
+		}
+		SDL_Rect test_rect;
+		test_rect.x = 0;
+		test_rect.y = 0;
+		test_rect.w = new_surface->w;
+		test_rect.h = new_surface->h;
+		DOTEMU_ASSERT_VAR = SDL_CreateTexture(Renderer, SDL_PIXELFORMAT_ARGB8888, 0, new_surface->w, new_surface->h);
+		if (DOTEMU_ASSERT_VAR == NULL) {
+			printf("DOTEMU_ASSERT(testImg != NULL) failed at %s, line: %d\n", "c:\\slave_jenkins\\workspace\\stx_time_steam_content\\src\\ff4_win32.cpp", 1948);
+			MessageBoxA(NULL, "The program has encountered an undefined behavior, see the logs for more details", "Assert Failed", MB_ICONERROR);
+			exit(1);
+		}
+		SDL_UpdateTexture((SDL_Texture*)DOTEMU_ASSERT_VAR, &test_rect, new_surface->pixels, new_surface->pitch);
+		SDL_FreeSurface(new_surface);
+		if (DOTEMU_ASSERT_VAR == NULL) {
+			printf("DOTEMU_ASSERT(testImg != NULL) failed at %s, line: %d\n", "c:\\slave_jenkins\\workspace\\stx_time_steam_content\\src\\ff4_win32.cpp", 1952);
+			MessageBoxA(NULL, "The program has encountered an undefined behavior, see the logs for more details", "Assert Failed", MB_ICONERROR);
+			exit(1);
+		}
+	}
+}
+
+//FUN_0042ac40
+SDL_Surface* Main::FF4_TTF_RenderText(const char* text, int draw_area_size, int font_size, int* actual_size) {
+	LOGFONTA lf;
+	GetObjectA(GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONTA), &lf);
+	lf.lfHeight = font_size * -16;
+	if (Language::GetLanguage() == 6) {
+		strcpy_s(lf.lfFaceName, LF_FACESIZE, "arial");
+	}
+	HFONT font = CreateFontIndirectA(&lf);
+
+	HDC hdc = CreateCompatibleDC(nullptr);
+	SelectObject(hdc, font);
+	SetTextColor(hdc, 0xffffff);
+	SetBkColor(hdc, 0);
+	WCHAR wide_text[256];
+	MultiByteToWideChar(CP_UTF8, 0, text, -1, wide_text, 256);
+
+	SIZE psizl;
+	int wide_text_len = wcslen(wide_text);
+	GetTextExtentPoint32W(hdc, wide_text, wide_text_len, &psizl);
+	long render_width = (int)(psizl.cx + (psizl.cx >> 0x1f & 0xfU)) >> 4;
+	if (actual_size != nullptr) {
+		*actual_size = render_width;
+		render_width = draw_area_size;
+	}
+	long bitmap_width = render_width * 16;
+	HBITMAP bitmap = CreateCompatibleBitmap(hdc, bitmap_width, draw_area_size * 16);
+	SelectObject(hdc, bitmap);
+
+	BITMAPINFO bi;
+	memset(&bi, 0, sizeof(bi));
+	bi.bmiHeader.biHeight = draw_area_size * -16;
+	bi.bmiHeader.biXPelsPerMeter = 0;
+	bi.bmiHeader.biYPelsPerMeter = 0;
+	bi.bmiHeader.biClrUsed = 0;
+	bi.bmiHeader.biClrImportant = 0;
+	bi.bmiHeader.biSize = 40;
+	unsigned int pixels_len = render_width * draw_area_size * 16 * 16 * 4;
+	bi.bmiHeader.biPlanes = 1;
+	bi.bmiHeader.biBitCount = 32;
+	bi.bmiHeader.biSizeImage = pixels_len;
+	bi.bmiHeader.biWidth = bitmap_width;
+
+	void* pixels = malloc(pixels_len);
+	RECT rect;
+	rect.right = bi.bmiHeader.biWidth;
+	rect.bottom = -bi.bmiHeader.biHeight;
+	rect.left = 0;
+	rect.top = 0;
+
+	HBRUSH hbr = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	FillRect(hdc, &rect, hbr);
+	DrawTextW(hdc, wide_text, wide_text_len, &rect, DT_NOCLIP | DT_SINGLELINE | DT_VCENTER);
+	GetDIBits(hdc, bitmap, 0, -bi.bmiHeader.biHeight, pixels, &bi, DIB_RGB_COLORS);
+
+	SDL_Surface* surface = SDL_CreateRGBSurface(0, render_width, draw_area_size, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+	SDL_LockSurface(surface);
+
+	uint8_t* srcPixels = static_cast<uint8_t*>(pixels);
+	int srcPitch = bitmap_width * 4;
+	uint8_t* dstPixels = static_cast<uint8_t*>(surface->pixels);
+	int dstPitch = surface->pitch;
+
+	for (int blockY = 0; blockY < draw_area_size - 1; ++blockY) {
+		uint8_t* dstRow = dstPixels + blockY * dstPitch;
+		for (int blockX = 0; blockX < render_width; ++blockX) {
+
+			int sumR = 0, sumG = 0, sumB = 0, sumA = 0;
+			for (int y = 0; y < 16; ++y) {
+				const uint8_t* srcRow = srcPixels + (blockY * 16 + y) * srcPitch + blockX * 16 * 4;
+				for (int x = 0; x < 16; ++x) {
+					uint8_t b = srcRow[x * 4 + 0];
+					uint8_t g = srcRow[x * 4 + 1];
+					uint8_t r = srcRow[x * 4 + 2];
+					uint8_t a = srcRow[x * 4 + 3];
+					sumR += r;
+					sumG += g;
+					sumB += b;
+					sumA += a;
+				}
+			}
+
+			int totalPixels = 16 * 16;
+			int avg = (sumR + sumG + sumB + sumA) / (4 * totalPixels);
+
+			uint8_t* dstPixel = dstRow + blockX * 4;
+			dstPixel[0] = 0xFF;
+			dstPixel[1] = 0xFF;
+			dstPixel[2] = 0xFF;
+			dstPixel[3] = static_cast<uint8_t>(avg);
+		}
+	}
+
+	uint8_t* lastRow = dstPixels + (draw_area_size - 1) * dstPitch;
+	for (int blockX = 0; blockX < render_width; ++blockX) {
+		uint8_t* dstPixel = lastRow + blockX * 4;
+		dstPixel[0] = 0xFF;
+		dstPixel[1] = 0xFF;
+		dstPixel[2] = 0xFF;
+		dstPixel[3] = 0;
+	}
+
+	SDL_UnlockSurface(surface);
+	DeleteDC(hdc);
+	DeleteObject(bitmap);
+	DeleteObject(font);
+	free(pixels);
+
+	return surface;
 }
